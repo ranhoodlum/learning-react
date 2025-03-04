@@ -14,12 +14,17 @@ class ClassInput extends Component {
       todos: [],
       inputVal: "",
       count: 0,
+      editingTodoId: -1,
+      editingInputVal: "",
     };
 
     // bind the methods to the *class*
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.deleteButtonHandler = this.deleteButtonHandler.bind(this);
+    this.editButtonHandler = this.editButtonHandler.bind(this);
+    this.reSubmitHandler = this.reSubmitHandler.bind(this);
+    this.handleEditValChange = this.handleEditValChange.bind(this);
   }
 
   handleInputChange(e) {
@@ -37,11 +42,11 @@ class ClassInput extends Component {
     // state variables are unique to each instance of this
     // component
     this.setState((state) => ({
+      ...state,
       todos: state.todos.concat({
         id: crypto.randomUUID(),
         todo: state.inputVal,
       }),
-      inputVal: "",
       count: state.count + 1,
     }));
   }
@@ -50,6 +55,7 @@ class ClassInput extends Component {
     e.preventDefault();
     const id = e.target.id;
     this.setState((state) => ({
+      ...state,
       // i guess the "this" for state comes from the "this" of setState?
       // beacuse array functions don't have `this`.
       // OR react itself passes the state, binding the `this` for particular
@@ -59,6 +65,42 @@ class ClassInput extends Component {
         1,
       ),
       count: state.count - 1,
+    }));
+  }
+
+  handleEditValChange(e) {
+    // also, the setState receives a *callback* as parameter
+    // every time, and takes current state as input
+    this.setState((state) => ({
+      ...state,
+      editingInputVal: e.target.value,
+    }));
+  }
+
+  editButtonHandler(e) {
+    e.preventDefault();
+    const id = e.target.id;
+    this.setState((state) => ({
+      ...state,
+      editingTodoId: id,
+    }));
+  }
+
+  reSubmitHandler(e) {
+    e.preventDefault();
+    const id = e.target.id;
+    this.setState((state) => ({
+      ...state,
+      todos: state.todos.toSpliced(
+        state.todos.indexOf(state.todos.find((todo) => todo.id === id)),
+        1,
+        {
+          id: state.todos.find((todo) => todo.id === id).id,
+          todo: state.editingInputVal,
+        },
+      ),
+      editingInputVal: "",
+      editingTodoId: -1,
     }));
   }
 
@@ -86,7 +128,19 @@ class ClassInput extends Component {
           {this.state.todos.map((todo) => {
             return (
               <Fragment key={todo.id}>
-                <li>{todo.todo}</li>
+                <li>
+                  {todo.id === this.state.editingTodoId ? (
+                    <input
+                      type="text"
+                      id={todo.id}
+                      placeholder="New task"
+                      value={this.state.editingInputVal}
+                      onChange={this.handleEditValChange}
+                    />
+                  ) : (
+                    todo.todo
+                  )}
+                </li>
                 <button
                   className="delete"
                   id={todo.id}
@@ -94,6 +148,23 @@ class ClassInput extends Component {
                 >
                   Delete
                 </button>
+                {this.state.editingTodoId === todo.id ? (
+                  <button
+                    className="reSubmit"
+                    id={todo.id}
+                    onClick={this.reSubmitHandler}
+                  >
+                    Resubmit{" "}
+                  </button>
+                ) : (
+                  <button
+                    className="edit"
+                    id={todo.id}
+                    onClick={this.editButtonHandler}
+                  >
+                    Edit
+                  </button>
+                )}
               </Fragment>
             );
           })}
