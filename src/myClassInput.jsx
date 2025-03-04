@@ -13,6 +13,7 @@ class ClassInput extends Component {
     this.state = {
       todos: [],
       inputVal: "",
+      count: 0,
     };
 
     // bind the methods to the *class*
@@ -41,6 +42,7 @@ class ClassInput extends Component {
         todo: state.inputVal,
       }),
       inputVal: "",
+      count: state.count + 1,
     }));
   }
 
@@ -50,10 +52,13 @@ class ClassInput extends Component {
     this.setState((state) => ({
       // i guess the "this" for state comes from the "this" of setState?
       // beacuse array functions don't have `this`.
+      // OR react itself passes the state, binding the `this` for particular
+      // component. (I prefer the first solution)
       todos: state.todos.toSpliced(
         state.todos.indexOf(state.todos.find((todo) => todo.id === id)),
         1,
       ),
+      count: state.count - 1,
     }));
   }
 
@@ -75,6 +80,7 @@ class ClassInput extends Component {
           <button type="submit">Submit</button>
         </form>
         <h4>All the tasks!</h4>
+        <div className="count">Todos count: {this.state.count}</div>
         {/* The list of all the To-Do's, displayed */}
         <ul>
           {this.state.todos.map((todo) => {
